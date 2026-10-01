@@ -72,6 +72,22 @@ static long madvise_behavior(struct vm_area_struct *vma,
 		}
 		new_flags &= ~VM_DONTCOPY;
 		break;
+	case MADV_WIPEONFORK:
+	case MADV_KEEPONFORK:
+		/*
+		 * MADV_WIPEONFORK is only supported on anonymous private memory:
+		 * there is nothing to wipe in a file or shared mapping, and the
+		 * child would see the parent's data through the same object.
+		 */
+		if (vma->vm_file || vma->vm_flags & VM_SHARED) {
+			error = -EINVAL;
+			goto out;
+		}
+		if (behavior == MADV_WIPEONFORK)
+			new_flags |= VM_WIPEONFORK;
+		else
+			new_flags &= ~VM_WIPEONFORK;
+		break;
 	case MADV_DONTDUMP:
 		new_flags |= VM_DONTDUMP;
 		break;
@@ -406,6 +422,8 @@ madvise_behavior_valid(int behavior)
 #endif
 	case MADV_DONTDUMP:
 	case MADV_DODUMP:
+	case MADV_WIPEONFORK:
+	case MADV_KEEPONFORK:
 		return true;
 
 	default:

@@ -628,6 +628,15 @@ void services_compute_xperms_drivers(
 {
 	unsigned int i;
 
+	/*
+	 * Netlink message xperms are not enforced by this kernel; netlink
+	 * sockets are still checked with the legacy nlmsg_* permissions.
+	 * Leave them out of the ioctl driver set entirely, otherwise len=1
+	 * below would make every ioctl on the socket class deny.
+	 */
+	if (node->datum.u.xperms->specified == AVTAB_XPERMS_NLMSG)
+		return;
+
 	if (node->datum.u.xperms->specified == AVTAB_XPERMS_IOCTLDRIVER) {
 		/* if one or more driver has all permissions allowed */
 		for (i = 0; i < ARRAY_SIZE(xperms->drivers.p); i++)
@@ -953,6 +962,8 @@ void services_compute_xperms_decision(struct extended_perms_decision *xpermd,
 		if (!security_xperm_test(node->datum.u.xperms->perms.p,
 					xpermd->driver))
 			return;
+	} else if (node->datum.u.xperms->specified == AVTAB_XPERMS_NLMSG) {
+		return;
 	} else {
 		BUG();
 	}

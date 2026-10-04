@@ -1056,6 +1056,16 @@ config DIRTYSANTA_FIXUP_G6_SIMCOUNT
 	  If unset the value from the kernel parameter "lge.sim_num" will
 	  be used.
 
+config DIRTYSANTA_FIXUP_VENDOR1
+	boolean "Clear the factory-cable flag left in SMEM VENDOR1"
+	default n
+	help
+	  The DirtySanta engineering bootloader leaves the factory-cable
+	  flag in the SMEM VENDOR1 block at 0xffffffff. The LGE modem then
+	  treats every AP data call as made over a factory cable and
+	  rejects it, so mobile data never comes up although LTE attach,
+	  IMS and voice work. Clear the flag before the modem starts.
+
 config DIRTYSANTA_FIXUP_DEVICENAME
 	string "Device name to use for VENDOR0 smem area"
 	depends on DIRTYSANTA_FIXUP
